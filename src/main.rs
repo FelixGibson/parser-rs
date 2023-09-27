@@ -129,6 +129,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .replace(|c: char| c == '/' || c == ':', "")
             .trim_start_matches("www.")
             .trim_end_matches(".com")
+            // only keep the first part of the domain
+            .split('.')
+            .next()
+            .unwrap_or_default()
             .to_owned();
         let reg = regex::Regex::new(r"https://www.zhihu.com/question/\d+/answer/").unwrap();
         if reg.is_match(&url) {
@@ -155,7 +159,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or_else(|| item.given_title.unwrap_or_default());
         let ctag = if no_common { "" } else { " #c " };
         output += &format!(
-            "\n- {} - [{}]({}){}{};; ",
+            "\n- {}-[{}]({}) {} {};; ",
             title, site, url, ctag, tags
         );
         let archive = PocketAction {
