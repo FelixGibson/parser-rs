@@ -20,12 +20,12 @@ struct PocketItem {
     resolved_url: Option<String>,
     given_title: Option<String>,
     resolved_title: Option<String>,
-    tags: Option<Vec<Tag>>,
+    tags: Option<HashMap<String, Tag>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Tag {
-    id: usize,
+    item_id: String,
     tag: String,
 }
 
@@ -125,7 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut no_common = false;
         if let Some(item_tags) = item.tags {
             for tag in item_tags {
-                let ignore_case_tag = tag.tag;
+                let ignore_case_tag = tag.1.tag;
                 if ignore_common_tags
                     .iter()
                     .any(|x| x.to_lowercase() == ignore_case_tag.to_lowercase())
