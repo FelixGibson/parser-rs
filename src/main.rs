@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use reqwest::{Client, Method, Url};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
@@ -30,7 +31,7 @@ struct Tag {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct PocketList {
-    list: Vec<(String, PocketItem)>,
+    list: HashMap<String, PocketItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
