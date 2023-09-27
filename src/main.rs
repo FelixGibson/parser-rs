@@ -5,6 +5,8 @@ use reqwest::{Client, Method, Url};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
+use std::fs::OpenOptions;
+use std::io::Write;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
@@ -154,7 +156,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if !output.is_empty() {
         let date = chrono::Utc::now().format("%Y_%m_%d").to_string();
-        let mut file = File::create(format!("{}{}.md", folder_path, date))?;
+        let file_path = format!("{}{}.md", folder_path, date);
+    
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(file_path)?;
+    
         file.write_all(output.as_bytes())?;
     }
 
