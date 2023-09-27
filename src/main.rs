@@ -98,14 +98,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "access_token": access_token,
         "detailType": "complete"
     });
-    let res = client
+    let res: reqwest::Response = client
         .request(Method::POST, url)
         .json(&request_json)
         .send()
         .await?;
-    let pocket_list: PocketList = res.json().await?;
+    
+    let pocket_list: PocketList = {
+        let json_data = res.json::<serde_json::Value>().await?;
+        if json_data["list"].is_array() && json_data["list"].as_array().unwrap().is_empty() {
+            PocketList { list: HashMap::new() } // Empty hashmap when the list field does not contain data
+        } else {
+            serde_json::from_value(json_data)?
+        }
+    };
 
     let mut output = String::new();
+    if pocket_list.list.is_empty() {
+        println!("Empty, nothing to parse");
+        return  Ok(());
+    }
     for (key, item) in pocket_list.list {
         let mut url = item.given_url;
         if url.is_empty() {
@@ -162,7 +174,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .create(true)
             .append(true)
             .open(file_path)?;
-    
+        println!("{:?}", &output);
         file.write_all(output.as_bytes())?;
     }
 
