@@ -132,12 +132,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 {
                     no_common = true;
                 }
-                // if let Some(index) = config_tags
-                //     .iter()
-                //     .position(|x| x.to_lowercase() == ignore_case_tag.to_lowercase())
-                // {
-                //     tags += &format!("{} ", config_tags[index]);
-                // }
+                tags += &ignore_case_tag;
+                tags += " ";
             }
         }
         let title = item
