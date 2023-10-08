@@ -139,6 +139,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let replace = regex::Regex::new(r"\?\S+$").unwrap();
             url = replace.replace_all(&url, "").to_owned().to_string();
         }
+        // for x
+        let pattern = regex::Regex::new(r"\?.*").unwrap();
+        if url.starts_with("https://twitter.com/") || url.starts_with("https://x.com") {
+            url = pattern.replace(&url, "").to_owned().to_string();
+        }
+
         let mut tags = String::new();
         let mut no_common = false;
         if let Some(item_tags) = item.tags {
