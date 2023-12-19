@@ -134,7 +134,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .next()
             .unwrap_or_default()
             .to_owned();
-        let reg = regex::Regex::new(r"https://www.zhihu.com/question/\d+/answer/").unwrap();
+        let mut reg = regex::Regex::new(r"https://www.zhihu.com/question/\d+/answer/").unwrap();
+        if reg.is_match(&url) {
+            let replace = regex::Regex::new(r"\?\S+$").unwrap();
+            url = replace.replace_all(&url, "").to_owned().to_string();
+        }
+        reg = regex::Regex::new(r"https://www.zhihu.com/people/").unwrap();
         if reg.is_match(&url) {
             let replace = regex::Regex::new(r"\?\S+$").unwrap();
             url = replace.replace_all(&url, "").to_owned().to_string();
