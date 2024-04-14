@@ -1,12 +1,18 @@
 use std::env;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{prelude::*, BufReader, BufWriter};
+use std::path::PathBuf;
 use reqwest::{Client, Method, Url};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::process::Command;
+use std::io::Error;
+use regex::Regex;
+use tempfile::NamedTempFile;
+
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
@@ -155,7 +161,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        let mut tags = String::new();
+        let mut tags: Vec<String> = Vec::new();
         let mut no_common = false;
         if let Some(item_tags) = item.tags {
             for tag in item_tags {
@@ -166,18 +172,72 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 {
                     no_common = true;
                 }
-                tags += &ignore_case_tag;
-                tags += " ";
+                // tags += &ignore_case_tag;
+                // tags += " ";
+                tags.push(ignore_case_tag);
             }
+        }
+        if !no_common {
+            tags.push("#c".to_owned());
         }
         let title = item
             .resolved_title
             .unwrap_or_else(|| item.given_title.unwrap_or_default());
-        let ctag = if no_common { "" } else { " #c " };
-        output += &format!(
-            "\n- {}-[{}]({}) {} {};; ",
-            title, site, url, ctag, tags
-        );
+
+        let search_result = execute_command(&url, &folder_path, &tags);
+        match search_result {
+            Ok(res) => {
+                if !res.is_empty() {
+                    // The URL was found in a file in the folder
+                    let lines: Vec<&str> = res.split('\n').collect();
+                    for line in lines {
+                        let file_path_and_line_content: Vec<&str> = line.splitn(2, ':').collect();
+                        if file_path_and_line_content.len() >= 2 {
+                            let file_path = file_path_and_line_content[0];
+                            let line_content = file_path_and_line_content[1];
+                            // Open the file
+                            let mut full_path = PathBuf::from(folder_path.clone());
+                            full_path.push(file_path);
+
+                            let file = File::open(&full_path)?;
+                            let reader = BufReader::new(file);
+                            // Create a temporary file
+                            let mut temp_file = NamedTempFile::new()?;
+                            {
+                                let mut writer = BufWriter::new(&temp_file);
+                                // Read the file line by line
+                                for line in reader.lines() {
+                                    let line = line?;
+                                    if line == line_content {
+                                        // Modify the line
+                                        let re = Regex::new(r"<!--SR:![^>]*-->").unwrap();
+                                        let modified_line = re.replace(&line, "").to_string();
+                                        writeln!(writer, "{}", modified_line)?;
+                                    } else {
+                                        // Write the original line
+                                        writeln!(writer, "{}", line)?;
+                                    }
+                                }
+                            }
+                            // Replace the original file with the temporary file
+                            temp_file.persist(full_path)?;
+                        }
+                    }
+                } else {
+                    // impossible
+                }
+            },
+            Err(e) => {
+                let tags_string = tags.iter().map(|tag| format!("{}", tag)).collect::<Vec<String>>().join(" ");
+                output += &format!(
+                    "\n- {}-[{}]({}) {} ;; ",
+                    title, site, url, tags_string
+                );
+            }
+        }
+
+
+        
         let archive = PocketAction {
             action: "archive".to_owned(),
             item_id: key.to_owned(),
@@ -197,6 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{:?}", &output);
         file.write_all(output.as_bytes())?;
     }
+    
 
     let url = Url::parse_with_params(
         "https://getpocket.com/v3/send",
@@ -211,6 +272,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:?}", res.text().await?);
 
     Ok(())
+}
+
+fn execute_command(highlights_string: &str, folder_path: &str, tags: &Vec<String>) -> Result<String, Error> {
+    let tags_string = tags.iter().map(|tag| format!("'{}", tag)).collect::<Vec<String>>().join(" ");
+    let cmd = format!("grep --line-buffered --color=never -r \"\" * | fzf --filter=\"{} {}\"", highlights_string, tags_string);
+    // print the command
+    println!("{}", cmd);
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&cmd)
+        .current_dir(folder_path) // Set the current directory to folder_path
+        .output()?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err(Error::new(std::io::ErrorKind::Other, "Error execute Command"))
+    }
 }
 
 async fn get_code(
