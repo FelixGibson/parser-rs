@@ -184,8 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let title = item
             .resolved_title
             .unwrap_or_else(|| item.given_title.unwrap_or_default());
-
-        let search_result = execute_command(&url, &folder_path, &tags);
+        let search_result = execute_command(&("(".to_owned() + &url + ")"), &folder_path, &tags);
         match search_result {
             Ok(res) => {
                 if !res.is_empty() {
