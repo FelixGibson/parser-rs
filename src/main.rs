@@ -19,7 +19,6 @@ struct Config {
     access_token: String,
     user_name: String,
     code: String,
-    ignore_common_tags: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,7 +58,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut access_token = String::new();
     let mut user_name = String::new();
     let mut action: Vec<PocketAction> = Vec::new();
-    let mut ignore_common_tags: Vec<String> = Vec::new();
 
     let config_str = std::fs::read_to_string("config.json");
     let config = match config_str {
@@ -68,13 +66,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let access_token = value["accessToken"].take().as_str().unwrap_or_default().to_owned();
             let user_name = value["userName"].take().as_str().unwrap_or_default().to_owned();
             let code = value["code"].take().as_str().unwrap_or_default().to_owned();
-            let ignore_common_tags = value["ignoreCommonTags"].take().as_str().unwrap_or_default().to_owned();
     
             Config {
                 access_token,
                 user_name,
                 code,
-                ignore_common_tags,
             }
         }
         Err(_) => {
@@ -86,7 +82,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 access_token: access_token.clone(),
                 user_name: user_name.clone(),
                 code: code.clone(),
-                ignore_common_tags: String::new(),
             }
         }
     };
@@ -94,7 +89,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     access_token = config.access_token.clone();
     user_name = config.user_name.clone();
     code = config.code.clone();
-    ignore_common_tags = config.ignore_common_tags.split(' ').map(|x| x.to_owned()).collect();
 
     let client = Client::new();
 
@@ -163,22 +157,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let mut tags: Vec<String> = Vec::new();
-        let mut no_common = false;
         if let Some(item_tags) = item.tags {
             for tag in item_tags {
                 let ignore_case_tag = tag.1.tag;
-                if ignore_common_tags
-                    .iter()
-                    .any(|x| x.to_lowercase() == ignore_case_tag.to_lowercase())
-                {
-                    no_common = true;
-                }
                 // tags += &ignore_case_tag;
                 // tags += " ";
                 tags.push(ignore_case_tag);
             }
         }
-        if !no_common {
+        if tags.is_empty() {
             tags.push("#c".to_owned());
         }
         let title = item
@@ -334,7 +321,6 @@ async fn get_code(
         access_token: access_token.clone(),
         user_name: user_name_tmp.clone(),
         code: code.clone(),
-        ignore_common_tags: String::new(),
     };
     let config_str = serde_json::to_string(&config)?;
     std::fs::write("config.json", config_str)?;
