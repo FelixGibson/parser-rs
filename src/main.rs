@@ -235,7 +235,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if !output.is_empty() {
         let date = chrono::Utc::now().format("%Y_%m_%d").to_string();
-        let file_path = format!("{}{}.md", folder_path, date);
+        let file_path = format!("{}{}.md", folder_path + "/journals/", date);
     
         let mut file = OpenOptions::new()
             .create(true)
