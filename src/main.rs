@@ -193,12 +193,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             {
                                 let mut writer = BufWriter::new(&temp_file);
                                 // Read the file line by line
-                                for line in reader.lines() {
+                                let mut lines = reader.lines().peekable();
+                                while let Some(line) = lines.next() {
                                     let line = line?;
                                     if line == line_content {
                                         // Modify the line
                                         let re = Regex::new(r"<!--SR:![^>]*-->").unwrap();
-                                        let modified_line = re.replace(&line, "").to_string();
+                                        let mut modified_line = re.replace(&line, "").to_string();
+                                        // Append non-existent tags to the line
+                                        for tag in &tags {
+                                            if !modified_line.contains(tag) {
+                                                modified_line = format!("{} {}", modified_line, tag);
+                                            }
+                                        }
+                                        let mut is_card = false;
+                                        // check if the line is card
+                                        if modified_line.contains(";;") {
+                                            is_card = true;
+                                        }
+                                        // if the next line have "?"
+                                        if let Some(Ok(next_line)) = lines.peek() {
+                                            if next_line.contains("?") {
+                                                is_card = true;
+                                            }
+                                        }
+                                        if !is_card {
+                                            modified_line = format!("{} ;; ", modified_line);
+                                        }
+                                
                                         writeln!(writer, "{}", modified_line)?;
                                     } else {
                                         // Write the original line
@@ -262,8 +284,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn execute_command(highlights_string: &str, folder_path: &str, tags: &Vec<String>) -> Result<String, Error> {
-    let tags_string = tags.iter().map(|tag| format!("'{}", tag)).collect::<Vec<String>>().join(" ");
-    let cmd = format!("grep --line-buffered --color=never -r \"\" * | fzf --filter=\"{} {}\"", highlights_string, tags_string);
+    // let tags_string = tags.iter().map(|tag| format!("'{}", tag)).collect::<Vec<String>>().join(" ");
+    let cmd = format!("grep --line-buffered --color=never -r \"\" * | fzf --filter=\"'{}\"", highlights_string);
     // print the command
     println!("{}", cmd);
     let output = Command::new("sh")
