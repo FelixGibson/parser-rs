@@ -148,9 +148,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if url.starts_with("https://twitter.com/") || url.starts_with("https://x.com") {
             url = pattern.replace(&url, "").to_owned().to_string();
             // Replace x.com with twitter.com
-            url = url.replace("x.com", "twitter.com");
+            url = url.replace("twitter.com", "x.com");
             // appending /with_replies to Twitter URLs
-            let twitter_pattern = regex::Regex::new(r"^(https://twitter\.com/[a-zA-Z0-9_]+/?$)").unwrap();
+            let twitter_pattern = regex::Regex::new(r"^(https://x\.com/[a-zA-Z0-9_]+/?$)").unwrap();
             if twitter_pattern.is_match(&url) {
                 url = if url.ends_with("/") { url + "with_replies" } else { url + "/with_replies" };
             }
