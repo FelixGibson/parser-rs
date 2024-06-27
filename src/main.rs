@@ -156,6 +156,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        if url.contains("m.youtube.com") {
+            url = url.replace("m.youtube.com", "youtube.com");
+        }
+
         let mut tags: Vec<String> = Vec::new();
         if let Some(item_tags) = item.tags {
             for tag in item_tags {
