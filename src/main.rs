@@ -104,7 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for line in reader.lines() {
             let line = line?;
             let given_url = "https://x.com/".to_owned() + &line;
-            let given_title = Some(line);
+            let given_title = Some("x-");
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
                 item_id: "1".to_owned(),
