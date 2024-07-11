@@ -15,7 +15,6 @@ use std::io::Error;
 use regex::Regex;
 use tempfile::NamedTempFile;
 
-
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     access_token: String,
@@ -94,31 +93,53 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::new();
 
-    let url = Url::parse("https://getpocket.com/v3/get").unwrap();
-    let request_json = json!({
-        "consumer_key": consumer_key,
-        "access_token": access_token,
-        "detailType": "complete"
-    });
-    let res: reqwest::Response = client
-        .request(Method::POST, url)
-        .json(&request_json)
-        .send()
-        .await?;
-    
-    let pocket_list: PocketList = {
-        let json_data = res.json::<serde_json::Value>().await?;
-        if json_data["list"].is_array() && json_data["list"].as_array().unwrap().is_empty() {
-            PocketList { list: HashMap::new() } // Empty hashmap when the list field does not contain data
-        } else {
-            serde_json::from_value(json_data)?
+    let args: Vec<String> = env::args().collect();
+    let mut pocket_list = PocketList { list: HashMap::new() };
+
+    if args.len() > 1 {
+        let file_path = &args[1];
+        let file = File::open(file_path)?;
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            let line = line?;
+            let given_url = "https://x.com/".to_owned() + &line;
+            let given_title = Some(line);
+            let pocket_item = PocketItem {
+                given_url: given_url.clone(),
+                resolved_url: None,
+                given_title,
+                resolved_title: None,
+                tags: None,
+            };
+            pocket_list.list.insert(given_url.to_string(), pocket_item);
         }
-    };
+    } else {
+        let url = Url::parse("https://getpocket.com/v3/get").unwrap();
+        let request_json = json!({
+            "consumer_key": consumer_key,
+            "access_token": access_token,
+            "detailType": "complete"
+        });
+        let res: reqwest::Response = client
+            .request(Method::POST, url)
+            .json(&request_json)
+            .send()
+            .await?;
+        
+        pocket_list = {
+            let json_data = res.json::<serde_json::Value>().await?;
+            if json_data["list"].is_array() && json_data["list"].as_array().unwrap().is_empty() {
+                PocketList { list: HashMap::new() } // Empty hashmap when the list field does not contain data
+            } else {
+                serde_json::from_value(json_data)?
+            }
+        };
+    }
 
     let mut output = String::new();
     if pocket_list.list.is_empty() {
         println!("Empty, nothing to parse");
-        return  Ok(());
+        return Ok(());
     }
     for (key, item) in pocket_list.list {
         let mut url = item.given_url;
@@ -166,8 +187,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(item_tags) = item.tags {
             for tag in item_tags {
                 let ignore_case_tag = tag.1.tag;
-                // tags += &ignore_case_tag;
-                // tags += " ";
                 tags.push(ignore_case_tag);
             }
         }
@@ -256,7 +275,6 @@ async fn get_code(
         .split('&')
         .map(|x| x.split('=').nth(1).unwrap().to_owned())
         .collect::<Vec<_>>();
-
 
     let access_token = data[0].to_owned();
     let user_name = data[1].to_owned();

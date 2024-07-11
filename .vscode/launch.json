@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["/home/felix/Downloads/wangchuan-following.txt"],
             "cwd": "${workspaceFolder}",
             "env": {
                 "PARSER_FOLDER_PATH": "/home/felix/software/git-felix/Dropbox/Dropbox/logseq-obsidian-off1/journals/",
