@@ -95,8 +95,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args: Vec<String> = env::args().collect();
     let mut pocket_list = PocketList { list: HashMap::new() };
-
+    let mut is_data_input_from_pocket = true;
     if args.len() > 1 {
+        is_data_input_from_pocket = false;
         let file_path = &args[1];
         let file = File::open(file_path)?;
         let reader = BufReader::new(file);
@@ -104,12 +105,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let line = line?;
             let given_url = "https://x.com/".to_owned() + &line;
             let given_title = Some(line);
+            let mut tags: HashMap<String, Tag> = HashMap::new();
+            tags.insert("1".to_owned(), Tag {
+                item_id: "1".to_owned(),
+                tag: "#[[pquest]]".to_owned(),
+            });
             let pocket_item = PocketItem {
                 given_url: given_url.clone(),
                 resolved_url: None,
                 given_title,
                 resolved_title: None,
-                tags: None,
+                tags: Some(tags),
             };
             pocket_list.list.insert(given_url.to_string(), pocket_item);
         }
@@ -227,17 +233,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
 
-    let url = Url::parse_with_params(
-        "https://getpocket.com/v3/send",
-        &[
-            ("consumer_key", consumer_key.as_str()),
-            ("access_token", access_token.as_str()),
-            ("actions", serde_json::to_string(&action)?.as_str()),
-        ],
-    )
-    .unwrap();
-    let res = client.request(Method::GET, url).send().await?;
-    println!("{:?}", res.text().await?);
+    if is_data_input_from_pocket {
+        let url = Url::parse_with_params(
+            "https://getpocket.com/v3/send",
+            &[
+                ("consumer_key", consumer_key.as_str()),
+                ("access_token", access_token.as_str()),
+                ("actions", serde_json::to_string(&action)?.as_str()),
+            ],
+        )
+        .unwrap();
+        let res = client.request(Method::GET, url).send().await?;
+        println!("{:?}", res.text().await?);
+    }
 
     Ok(())
 }
