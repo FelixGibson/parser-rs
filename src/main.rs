@@ -199,9 +199,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if tags.is_empty() {
             tags.push("#c".to_owned());
         }
-        let title = item
+        let mut title = item
             .resolved_title
             .unwrap_or_else(|| item.given_title.unwrap_or_default());
+        // replace all "#" in title
+        title = title.replace("#", "");
+        
         
         let res = util::check_and_reset(&folder_path, &url, &tags);
         if res.is_err() {
