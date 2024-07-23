@@ -29,6 +29,28 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'parser-rs'2",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=parser-rs",
+                    "--package=parser-rs"
+                ],
+                "filter": {
+                    "name": "parser-rs",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PARSER_FOLDER_PATH": "/home/felix/software/git-felix/Dropbox/Dropbox/logseq-obsidian-off1/journals/",
+                "RUST_BACKTRACE": "1"
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'parser-rs'",
             "cargo": {
                 "args": [

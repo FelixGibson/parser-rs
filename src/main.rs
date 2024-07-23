@@ -124,7 +124,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let request_json = json!({
             "consumer_key": consumer_key,
             "access_token": access_token,
-            "detailType": "complete"
+            "detailType": "complete",
+            "state": "unread"
         });
         let res: reqwest::Response = client
             .request(Method::POST, url)
@@ -134,6 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         pocket_list = {
             let json_data = res.json::<serde_json::Value>().await?;
+            println!("{}", serde_json::to_string_pretty(&json_data).expect("Failed to print json_data"));
             if json_data["list"].is_array() && json_data["list"].as_array().unwrap().is_empty() {
                 PocketList { list: HashMap::new() } // Empty hashmap when the list field does not contain data
             } else {
