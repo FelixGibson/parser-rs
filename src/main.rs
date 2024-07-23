@@ -218,7 +218,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let archive = PocketAction {
-            action: "archive".to_owned(),
+            action: "delete".to_owned(),
             item_id: key.to_owned(),
             time: (chrono::Utc::now().timestamp() as u64).to_string(),
         };
