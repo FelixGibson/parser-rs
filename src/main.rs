@@ -104,7 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for line in reader.lines() {
             let line = line?;
             let given_url = "https://x.com/".to_owned() + &line;
-            let given_title = Some("x-".to_string());
+            let given_title = Some("x.com".to_string());
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
                 item_id: "1".to_owned(),
@@ -183,6 +183,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // appending /with_replies to Twitter URLs
             let twitter_pattern = regex::Regex::new(r"^(https://x\.com/[a-zA-Z0-9_]+/?$)").unwrap();
             if twitter_pattern.is_match(&url) {
+                // to lower case first
+                url = url.to_lowercase();
                 url = if url.ends_with("/") { url + "with_replies" } else { url + "/with_replies" };
             }
         }
@@ -207,8 +209,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // replace all "#" in title
         title = title.replace("#", "");
         
+        let res;
+        if !is_data_input_from_pocket {
+            res = util::check(&folder_path, &url, &tags);
+
+        } else {
+            res = util::check_and_reset(&folder_path, &url, &tags);
+        }
         
-        let res = util::check_and_reset(&folder_path, &url, &tags);
         if res.is_err() {
             let tags_string = tags.iter().map(|tag| format!("{}", tag)).collect::<Vec<String>>().join(" ");
             output += &format!(

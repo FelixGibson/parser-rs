@@ -103,3 +103,16 @@ pub fn check_and_reset(folder_path: &str, url: &str, tags: &Vec<String>) -> Resu
         }
     Ok(())
 }
+
+pub fn check(folder_path: &str, url: &str, tags: &Vec<String>) -> Result<(), Error> {
+    let search_result = execute_command(&("(".to_owned() + &url + ")"), &folder_path);
+        match search_result {
+            Ok(res) => {
+                
+            },
+            Err(e) => {
+                return Err(e);
+            }
+        }
+    Ok(())
+}
