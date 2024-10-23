@@ -203,6 +203,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if tags.is_empty() {
             tags.push("#c".to_owned());
         }
+        // Iterate and ensure each tag starts with '#'
+        for tag in tags.iter_mut() {
+            if !tag.starts_with('#') {
+                *tag = format!("#[[{}]]", tag);
+            }
+        }
+        if url.contains("m.youtube.com") {
+            url = url.replace("m.youtube.com", "youtube.com");
+        }
+        if url.contains("youtube.com") {
+            tags.push("#[[vquest]]".to_string());
+        }
+
+
         let mut title = item
             .resolved_title
             .unwrap_or_else(|| item.given_title.unwrap_or_default());
