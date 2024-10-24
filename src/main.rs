@@ -205,8 +205,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         // Iterate and ensure each tag starts with '#'
         for tag in tags.iter_mut() {
-            if !tag.starts_with('#') {
-                *tag = format!("#[[{}]]", tag);
+            // Trim leading and trailing whitespace
+            let trimmed_tag = tag.trim();
+            
+            if !trimmed_tag.starts_with('#') {
+                *tag = format!("#[[{}]]", trimmed_tag);
+            } else {
+                *tag = trimmed_tag.to_string(); // Update the tag to the trimmed version if it already starts with '#'
             }
         }
         if url.contains("m.youtube.com") {
