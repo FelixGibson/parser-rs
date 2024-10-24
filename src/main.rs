@@ -201,7 +201,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         if tags.is_empty() {
-            tags.push("#c".to_owned());
+            tags.push("#[[c]]".to_owned());
         }
         // Iterate and ensure each tag starts with '#'
         for tag in tags.iter_mut() {
