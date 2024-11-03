@@ -200,6 +200,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 tags.push(ignore_case_tag);
             }
         }
+        if url.contains("youtube.com") {
+            tags.push("#[[vquest]]".to_string());
+        }
         if tags.is_empty() {
             tags.push("#[[c]]".to_owned());
         }
@@ -216,9 +219,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         if url.contains("m.youtube.com") {
             url = url.replace("m.youtube.com", "youtube.com");
-        }
-        if url.contains("youtube.com") {
-            tags.push("#[[vquest]]".to_string());
         }
 
 
