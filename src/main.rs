@@ -14,12 +14,19 @@ use std::process::Command;
 use std::io::Error;
 use regex::Regex;
 use tempfile::NamedTempFile;
+use serde_json::from_reader;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     access_token: String,
     user_name: String,
     code: String,
+}
+
+#[derive(Deserialize)]
+struct UrlEntry {
+    name: String,
+    url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -101,10 +108,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let file_path = &args[1];
         let file = File::open(file_path)?;
         let reader = BufReader::new(file);
-        for line in reader.lines() {
-            let line = line?;
-            let given_url = "https://x.com/".to_owned() + &line;
-            let given_title = Some("x.com".to_string());
+        let url_entries: Vec<UrlEntry> = from_reader(reader)?;
+
+        for entry in url_entries {
+            let given_url = entry.url;
+            let given_title = Some(entry.name.to_string());
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
                 item_id: "1".to_owned(),
@@ -119,6 +127,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             pocket_list.list.insert(given_url.to_string(), pocket_item);
         }
+        // for line in reader.lines() {
+        //     let line = line?;
+        //     let given_url = "https://x.com/".to_owned() + &line;
+        //     let given_title = Some("x.com".to_string());
+        //     let mut tags: HashMap<String, Tag> = HashMap::new();
+        //     tags.insert("1".to_owned(), Tag {
+        //         item_id: "1".to_owned(),
+        //         tag: "#[[pquest]]".to_owned(),
+        //     });
+        //     let pocket_item = PocketItem {
+        //         given_url: given_url.clone(),
+        //         resolved_url: None,
+        //         given_title,
+        //         resolved_title: None,
+        //         tags: Some(tags),
+        //     };
+        //     pocket_list.list.insert(given_url.to_string(), pocket_item);
+        // }
     } else {
         let url = Url::parse("https://getpocket.com/v3/get").unwrap();
         let request_json = json!({
