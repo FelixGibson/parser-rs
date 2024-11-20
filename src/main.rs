@@ -260,8 +260,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         let res;
         if !is_data_input_from_pocket {
-            res = util::check(&folder_path, &url, &tags);
+            if url.starts_with("https://m.weibo.cn/") {
+                let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
+                let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
+                res = util::check(&folder_path, &new_url1, &tags).or_else(|_| util::check(&folder_path, &new_url2, &tags)).or_else(|_| util::check(&folder_path, &url, &tags));
 
+                // res = util::check(&folder_path, &new_url1, &tags) || util::check(&folder_path, &new_url2, &tags) || util::check(&folder_path, &url, &tags);
+            } else {
+                res = util::check(&folder_path, &url, &tags);
+            }
         } else {
             res = util::check_and_reset(&folder_path, &url, &tags);
         }
