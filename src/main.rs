@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
                 item_id: "1".to_owned(),
-                tag: "#[[pquest]]".to_owned(),
+                tag: "#[[wangjianshuofollowing]]".to_owned(),
             });
             let pocket_item = PocketItem {
                 given_url: given_url.clone(),
