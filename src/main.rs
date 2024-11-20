@@ -111,12 +111,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let url_entries: Vec<UrlEntry> = from_reader(reader)?;
 
         for entry in url_entries {
-            let given_url = entry.url;
+            // let given_url = "https://m.weibo.cn/".to_string() + &entry.url;
+            let given_url = "https://m.weibo.cn/".to_string() + &entry.url;
             let given_title = Some(entry.name.to_string());
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
                 item_id: "1".to_owned(),
-                tag: "#[[wangjianshuofollowing]]".to_owned(),
+                tag: "#[[wangchuan-weibo-following]]".to_owned(),
             });
             let pocket_item = PocketItem {
                 given_url: given_url.clone(),
