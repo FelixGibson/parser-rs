@@ -271,7 +271,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             //     res = util::check(&folder_path, &url, &tags);
             // }
 
-            
+
             let mut url_alternatives = HashSet::new();
             url_alternatives.insert(url.to_owned());
 
@@ -280,6 +280,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
                 url_alternatives.insert(new_url1);
                 url_alternatives.insert(new_url2);
+            }
+
+            for url in url_alternatives.clone().iter() {
+                if !url.ends_with('/') {
+                    let slash_url = url.to_owned() + "/";
+                    url_alternatives.insert(slash_url);
+                }
+            }
+            // reversion
+            for url in url_alternatives.clone().iter() {
+                if url.ends_with('/') {
+                    let slash_url = url.trim_end_matches('/').to_owned();
+                    url_alternatives.insert(slash_url);
+                }
             }
 
             for alternative_url in url_alternatives {
