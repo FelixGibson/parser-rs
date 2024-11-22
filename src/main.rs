@@ -2,7 +2,7 @@ mod util;
 
 use std::env;
 use std::fs::File;
-use std::io::{prelude::*, BufReader, BufWriter};
+use std::io::{prelude::*, BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
 use reqwest::{Client, Method, Url};
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ use std::process::Command;
 use std::io::Error;
 use regex::Regex;
 use tempfile::NamedTempFile;
+use std::collections::HashSet;
 use serde_json::from_reader;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -112,7 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for entry in url_entries {
             // let given_url = "https://m.weibo.cn/".to_string() + &entry.url;
-            let given_url = "https://m.weibo.cn/".to_string() + &entry.url;
+            let given_url = "https://m.weibo.cn/u/".to_string() + &entry.url;
             let given_title = Some(entry.name.to_string());
             let mut tags: HashMap<String, Tag> = HashMap::new();
             tags.insert("1".to_owned(), Tag {
@@ -258,16 +259,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         title = title.replace("#", "");
         
-        let res;
+        let mut res: Result<(), Error> = Err(Error::new(ErrorKind::Other, "Failed to execute command"));
         if !is_data_input_from_pocket {
+            // if url.starts_with("https://m.weibo.cn/") {
+            //     let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
+            //     let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
+            //     res = util::check(&folder_path, &new_url1, &tags).or_else(|_| util::check(&folder_path, &new_url2, &tags)).or_else(|_| util::check(&folder_path, &url, &tags));
+
+            //     // res = util::check(&folder_path, &new_url1, &tags) || util::check(&folder_path, &new_url2, &tags) || util::check(&folder_path, &url, &tags);
+            // } else {
+            //     res = util::check(&folder_path, &url, &tags);
+            // }
+
+            
+            let mut url_alternatives = HashSet::new();
+            url_alternatives.insert(url.to_owned());
+
             if url.starts_with("https://m.weibo.cn/") {
                 let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
                 let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
-                res = util::check(&folder_path, &new_url1, &tags).or_else(|_| util::check(&folder_path, &new_url2, &tags)).or_else(|_| util::check(&folder_path, &url, &tags));
+                url_alternatives.insert(new_url1);
+                url_alternatives.insert(new_url2);
+            }
 
-                // res = util::check(&folder_path, &new_url1, &tags) || util::check(&folder_path, &new_url2, &tags) || util::check(&folder_path, &url, &tags);
-            } else {
-                res = util::check(&folder_path, &url, &tags);
+            for alternative_url in url_alternatives {
+                if let Ok(_) = util::check(&folder_path, &alternative_url, &tags) {
+                    res = Ok(());
+                    break;
+                }
             }
         } else {
             res = util::check_and_reset(&folder_path, &url, &tags);
