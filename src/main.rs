@@ -261,23 +261,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         let mut res: Result<(), Error> = Err(Error::new(ErrorKind::Other, "Failed to execute command"));
         if true {
-            // if url.starts_with("https://m.weibo.cn/") {
-            //     let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
-            //     let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
-            //     res = util::check(&folder_path, &new_url1, &tags).or_else(|_| util::check(&folder_path, &new_url2, &tags)).or_else(|_| util::check(&folder_path, &url, &tags));
-
-            //     // res = util::check(&folder_path, &new_url1, &tags) || util::check(&folder_path, &new_url2, &tags) || util::check(&folder_path, &url, &tags);
-            // } else {
-            //     res = util::check(&folder_path, &url, &tags);
-            // }
-
-
             let mut url_alternatives = HashSet::new();
             url_alternatives.insert(url.to_owned());
 
             if url.starts_with("https://m.weibo.cn/") {
                 let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
                 let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
+                url_alternatives.insert(new_url1);
+                url_alternatives.insert(new_url2);
+            } else if url.starts_with("https://weibo.cn/") {
+                let new_url1 = url.replace("https://weibo.cn/", "https://m.weibo.cn/");
+                let new_url2 = url.replace("https://weibo.cn/", "https://weibo.com/");
+                url_alternatives.insert(new_url1);
+                url_alternatives.insert(new_url2);
+            } else if url.starts_with("https://weibo.com/") {
+                let new_url1 = url.replace("https://weibo.com/", "https://weibo.cn/");
+                let new_url2 = url.replace("https://weibo.com/", "https://m.weibo.cn/");
                 url_alternatives.insert(new_url1);
                 url_alternatives.insert(new_url2);
             }
