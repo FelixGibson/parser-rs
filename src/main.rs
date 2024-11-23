@@ -260,7 +260,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         title = title.replace("#", "");
         
         let mut res: Result<(), Error> = Err(Error::new(ErrorKind::Other, "Failed to execute command"));
-        if !is_data_input_from_pocket {
+        if true {
             // if url.starts_with("https://m.weibo.cn/") {
             //     let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
             //     let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
@@ -302,8 +302,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     break;
                 }
             }
-        } else {
-            res = util::check_and_reset(&folder_path, &url, &tags);
         }
         
         if res.is_err() {
