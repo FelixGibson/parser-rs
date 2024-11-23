@@ -57,6 +57,29 @@ struct PocketAction {
     time: String,
 }
 
+struct UrlTransformation {
+    prefix: String,
+    replacements: Vec<String>,
+}
+
+impl UrlTransformation {
+    fn new(prefix: &str, replacements: &[&str]) -> Self {
+        Self {
+            prefix: prefix.to_string(),
+            replacements: replacements.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    fn apply(&self, url: &str, url_alternatives: &mut HashSet<String>) {
+        if url.starts_with(&self.prefix) {
+            for replacement in &self.replacements {
+                let new_url = url.replace(&self.prefix, replacement);
+                url_alternatives.insert(new_url);
+            }
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
@@ -264,22 +287,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut url_alternatives = HashSet::new();
             url_alternatives.insert(url.to_owned());
 
-            if url.starts_with("https://m.weibo.cn/") {
-                let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
-                let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
-                url_alternatives.insert(new_url1);
-                url_alternatives.insert(new_url2);
-            } else if url.starts_with("https://weibo.cn/") {
-                let new_url1 = url.replace("https://weibo.cn/", "https://m.weibo.cn/");
-                let new_url2 = url.replace("https://weibo.cn/", "https://weibo.com/");
-                url_alternatives.insert(new_url1);
-                url_alternatives.insert(new_url2);
-            } else if url.starts_with("https://weibo.com/") {
-                let new_url1 = url.replace("https://weibo.com/", "https://weibo.cn/");
-                let new_url2 = url.replace("https://weibo.com/", "https://m.weibo.cn/");
-                url_alternatives.insert(new_url1);
-                url_alternatives.insert(new_url2);
+            // if url.starts_with("https://m.weibo.cn/") {
+            //     let new_url1 = url.replace("https://m.weibo.cn/", "https://weibo.cn/");
+            //     let new_url2 = url.replace("https://m.weibo.cn/", "https://weibo.com/");
+            //     url_alternatives.insert(new_url1);
+            //     url_alternatives.insert(new_url2);
+            // } else if url.starts_with("https://weibo.cn/") {
+            //     let new_url1 = url.replace("https://weibo.cn/", "https://m.weibo.cn/");
+            //     let new_url2 = url.replace("https://weibo.cn/", "https://weibo.com/");
+            //     url_alternatives.insert(new_url1);
+            //     url_alternatives.insert(new_url2);
+            // } else if url.starts_with("https://weibo.com/") {
+            //     let new_url1 = url.replace("https://weibo.com/", "https://weibo.cn/");
+            //     let new_url2 = url.replace("https://weibo.com/", "https://m.weibo.cn/");
+            //     url_alternatives.insert(new_url1);
+            //     url_alternatives.insert(new_url2);
+            // }
+            let url_transformations = vec![
+                UrlTransformation::new("https://m.weibo.cn/", &["https://weibo.cn/", "https://weibo.com/"]),
+                UrlTransformation::new("https://weibo.cn/", &["https://m.weibo.cn/", "https://weibo.com/"]),
+                UrlTransformation::new("https://weibo.com/", &["https://weibo.cn/", "https://m.weibo.cn/"]),
+            ];
+
+            // Apply the transformation rules
+            for transformation in &url_transformations {
+                transformation.apply(&url, &mut url_alternatives);
             }
+
 
             for url in url_alternatives.clone().iter() {
                 if !url.ends_with('/') {
