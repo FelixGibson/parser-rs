@@ -307,6 +307,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 UrlTransformation::new("https://m.weibo.cn/", &["https://weibo.cn/", "https://weibo.com/"]),
                 UrlTransformation::new("https://weibo.cn/", &["https://m.weibo.cn/", "https://weibo.com/"]),
                 UrlTransformation::new("https://weibo.com/", &["https://weibo.cn/", "https://m.weibo.cn/"]),
+                UrlTransformation::new("https://www.m.weibo.cn/", &["https://weibo.cn/", "https://weibo.com/", "https://m.weibo.cn/"]),
+                UrlTransformation::new("https://www.weibo.cn/", &["https://m.weibo.cn/", "https://weibo.com/", "https://weibo.cn/"]),
+                UrlTransformation::new("https://www.weibo.com/", &["https://weibo.cn/", "https://m.weibo.cn/", "https://weibo.com/"]),
             ];
 
             // Apply the transformation rules
