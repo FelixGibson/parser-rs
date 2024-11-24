@@ -332,10 +332,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            for alternative_url in url_alternatives {
-                if let Ok(_) = util::check(&folder_path, &alternative_url, &tags) {
-                    res = Ok(());
-                    break;
+            if is_data_input_from_pocket {
+                for alternative_url in url_alternatives {
+                    if let Ok(_) = util::check(&folder_path, &alternative_url, &tags) {
+                        res = Ok(());
+                        break;
+                    }
+                }
+            } else {
+                for alternative_url in url_alternatives {
+                    if let Ok(_) = util::check_and_reset(&folder_path, &alternative_url, &tags) {
+                        res = Ok(());
+                        break;
+                    }
                 }
             }
         }
