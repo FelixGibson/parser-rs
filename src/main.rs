@@ -275,10 +275,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut title = item
             .resolved_title
-            .unwrap_or_else(|| item.given_title.unwrap_or_default());
+            .unwrap_or_else(|| item.given_title.clone().unwrap_or_default());
         // replace all "#" in title
-        if title.starts_with("https://") {
-            title = "".to_string();
+        if title.starts_with("https://") || title.is_empty() {
+            title = item.given_title.clone().unwrap_or_default();
         }
         title = title.replace("#", "");
         
