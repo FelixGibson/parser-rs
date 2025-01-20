@@ -277,7 +277,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .resolved_title
             .unwrap_or_else(|| item.given_title.clone().unwrap_or_default());
         // replace all "#" in title
-        if title.starts_with("https://") || title.is_empty() {
+        if title.starts_with("http") || title.is_empty() {
             title = item.given_title.clone().unwrap_or_default();
         }
         title = title.replace("#", "");
