@@ -251,7 +251,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 tags.push(ignore_case_tag);
             }
         }
-        if url.contains("youtube.com") || url.contains("bilibili.com") {
+        if url.contains("youtube.com") || url.contains("bilibili.com") || url.contains("douyin.com") {
             tags.push("#[[vquest]]".to_string());
         }
         if tags.is_empty() {
