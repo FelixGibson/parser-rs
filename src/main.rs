@@ -30,6 +30,26 @@ struct UrlEntry {
     url: String,
 }
 
+#[derive(Deserialize)]
+struct UrlList {
+    metadata: Metadata,
+    list: Vec<ListItem>,
+}
+
+#[derive(Deserialize)]
+struct Metadata {
+    url_prefix: String,
+}
+
+#[derive(Deserialize)]
+struct ListItem {
+    name: String,
+    url: String,
+    extra_prefix: String,
+    extra_suffix: String,
+    tags: Vec<String>,  // 新增tags字段
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct PocketItem {
     given_url: String,
@@ -132,44 +152,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let file_path = &args[1];
         let file = File::open(file_path)?;
         let reader = BufReader::new(file);
-        let url_entries: Vec<UrlEntry> = from_reader(reader)?;
+        let url_list: UrlList = from_reader(reader)?;
 
-        for entry in url_entries {
-            // let given_url = "https://m.weibo.cn/".to_string() + &entry.url;
-            let given_url = "https://m.weibo.cn/u/".to_string() + &entry.url;
-            let given_title = Some(entry.name.to_string());
+        for item in url_list.list {
+            // 构建完整URL
+            let url = format!(
+                "{}{}",
+                url_list.metadata.url_prefix,
+                item.url
+            );
+            
+            // 处理标签（仅使用原生tags字段）
             let mut tags: HashMap<String, Tag> = HashMap::new();
-            tags.insert("1".to_owned(), Tag {
-                item_id: "1".to_owned(),
-                tag: "#[[wangchuan-weibo-following]]".to_owned(),
-            });
+            for (i, tag_content) in item.tags.iter().enumerate() {
+                let clean_tag = tag_content.trim();
+                if !clean_tag.is_empty() {
+                    // 自动添加标签格式
+                    let formatted_tag = if clean_tag.starts_with("#[[") {
+                        clean_tag.to_string()
+                    } else {
+                        format!("#[[{}]]", clean_tag)
+                    };
+                    
+                    tags.insert(
+                        i.to_string(),
+                        Tag {
+                            item_id: i.to_string(),
+                            tag: formatted_tag,
+                        },
+                    );
+                }
+            }
+
             let pocket_item = PocketItem {
-                given_url: given_url.clone(),
-                resolved_url: None,
-                given_title,
+                given_url: url.clone(),
+                resolved_url: Some(url),
+                given_title: Some(item.name.clone()),
                 resolved_title: None,
                 tags: Some(tags),
             };
-            pocket_list.list.insert(given_url.to_string(), pocket_item);
+            pocket_list.list.insert(item.name.clone(), pocket_item);
         }
-        // for line in reader.lines() {
-        //     let line = line?;
-        //     let given_url = "https://x.com/".to_owned() + &line;
-        //     let given_title = Some("x.com".to_string());
-        //     let mut tags: HashMap<String, Tag> = HashMap::new();
-        //     tags.insert("1".to_owned(), Tag {
-        //         item_id: "1".to_owned(),
-        //         tag: "#[[pquest]]".to_owned(),
-        //     });
-        //     let pocket_item = PocketItem {
-        //         given_url: given_url.clone(),
-        //         resolved_url: None,
-        //         given_title,
-        //         resolved_title: None,
-        //         tags: Some(tags),
-        //     };
-        //     pocket_list.list.insert(given_url.to_string(), pocket_item);
-        // }
     } else {
         let url = Url::parse("https://getpocket.com/v3/get").unwrap();
         let request_json = json!({
