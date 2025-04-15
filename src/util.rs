@@ -59,8 +59,8 @@ pub fn check_and_reset(folder_path: &str, url: &str, tags: &Vec<String>) -> Resu
                                     let line = line.unwrap();
                                     if line == line_content {
                                         // Modify the line
-                                        let re = Regex::new(r"<!--SR:![^>]*-->").unwrap();
-                                        let mut modified_line = re.replace(&line, "").to_string();
+                                        // let re = Regex::new(r"<!--SR:![^>]*-->").unwrap();
+                                        let mut modified_line = line;
                                         // Append non-existent tags to the line
                                         for tag in tags {
                                             if !modified_line.contains(tag) {
